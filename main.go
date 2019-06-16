@@ -18,6 +18,11 @@ type Params struct {
 
 func main() {
 
+	fmt.Println("DOCKER_HOST", os.Getenv("DOCKER_HOST"))
+	_, err := client.NewEnvClient()
+	if err != nil {
+		panic(err)
+	}
 	token := os.Getenv("TOKEN")
 	if token == "" {
 		panic("Set env TOKEN")
@@ -61,7 +66,6 @@ func main() {
 		version := serv.Meta.Version
 		w.Write([]byte(image))
 		ctx = r.Context()
-
 		newSpec := serv.Spec
 		fmt.Println("spec", newSpec.TaskTemplate.ContainerSpec.Image)
 		opts := types.ServiceUpdateOptions{}
