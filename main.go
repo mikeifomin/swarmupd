@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"log"
 	"net/http"
@@ -9,9 +11,9 @@ import (
 )
 
 type Params struct {
-	Name   string `json:"name"`
-	NewTag string `json:"newTag"`
-	Token  string `json:"token"`
+	ServiceName string `json:"serviceName"`
+	NewTag      string `json:"newTag"`
+	Token       string `json:"token"`
 }
 
 func main() {
@@ -48,15 +50,32 @@ func main() {
 		}
 
 		ctx := r.Context()
-		serv, _, err := cli.ServiceInspectWithRaw(ctx, params.Name)
+		serviceID := params.ServiceName
+		serv, _, err := cli.ServiceInspectWithRaw(ctx, serviceID)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 			return
 		}
 		image := serv.Spec.TaskTemplate.ContainerSpec.Image
+		version := serv.Meta.Version
 		w.Write([]byte(image))
+		ctx = r.Context()
 
+		newSpec := serv.Spec
+		//newSpec.
+		opts := types.ServiceUpdateOptions{}
+		updResp, err := cli.ServiceUpdate(ctx, serviceID, version, newSpec, opts)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("%v", updResp.Warnings)))
+		return
 	})
+
+	fmt.Println("will listen ", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
