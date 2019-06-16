@@ -63,7 +63,7 @@ func main() {
 		ctx = r.Context()
 
 		newSpec := serv.Spec
-		//newSpec.
+		fmt.Println("spec", newSpec.TaskTemplate.ContainerSpec.Image)
 		opts := types.ServiceUpdateOptions{}
 		updResp, err := cli.ServiceUpdate(ctx, serviceID, version, newSpec, opts)
 		if err != nil {
