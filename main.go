@@ -43,14 +43,13 @@ func main() {
 		err := json.NewDecoder(r.Body).Decode(&params)
 		defer r.Body.Close()
 		if err != nil {
-			w.Write([]byte(err.Error()))
-			w.WriteHeader(http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		if params.Token != token {
-			w.Write([]byte("Wrong token"))
 			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte("Wrong token"))
 			return
 		}
 
@@ -63,8 +62,8 @@ func main() {
 		serviceID := params.ServiceName
 		serv, _, err := cli.ServiceInspectWithRaw(ctx, serviceID)
 		if err != nil {
-			w.Write([]byte(err.Error()))
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
 			return
 		}
 		imageFullName := serv.Spec.TaskTemplate.ContainerSpec.Image
@@ -76,8 +75,8 @@ func main() {
 		image := NewImage(imageFullName)
 		err = image.UpdateTag(params.NewTag, username, password)
 		if err != nil {
-			w.Write([]byte(err.Error()))
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
 			return
 		}
 		newSpec.TaskTemplate.ContainerSpec.Image = image.String()
@@ -85,12 +84,12 @@ func main() {
 		opts := types.ServiceUpdateOptions{}
 		updResp, err := cli.ServiceUpdate(ctx, serviceID, version, newSpec, opts)
 		if err != nil {
-			w.Write([]byte(err.Error()))
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
 			return
 		}
 		w.Write([]byte(fmt.Sprintf("%v", updResp.Warnings)))
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusOK)
 		return
 	})
 	fmt.Println("will listen ", port)
