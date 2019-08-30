@@ -39,19 +39,22 @@ func main() {
 	password := os.Getenv("REGISTRY_PASSWORD")
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("start")
 		var params Params
-		err := json.NewDecoder(r.Body).Decode(&params)
 		defer r.Body.Close()
+		err := json.NewDecoder(r.Body).Decode(&params)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		fmt.Println("read")
 
 		if params.Token != token {
 			w.WriteHeader(http.StatusForbidden)
 			w.Write([]byte("Wrong token"))
 			return
 		}
+		fmt.Println("tokne")
 
 		cli, err := client.NewEnvClient()
 		if err != nil {
@@ -59,6 +62,7 @@ func main() {
 			panic(err)
 		}
 
+		fmt.Println("client")
 		ctx := r.Context()
 		serviceID := params.ServiceName
 		serv, _, err := cli.ServiceInspectWithRaw(ctx, serviceID)
@@ -67,19 +71,24 @@ func main() {
 			w.Write([]byte(err.Error()))
 			return
 		}
+		fmt.Println("curr Service")
 		imageFullName := serv.Spec.TaskTemplate.ContainerSpec.Image
 		version := serv.Meta.Version
 		w.Write([]byte(imageFullName))
 
 		ctx = r.Context()
 		newSpec := serv.Spec
+
+		fmt.Println("start read curr Image")
 		image := NewImage(imageFullName)
+		fmt.Println("current image", image)
 		err = image.UpdateTag(params.NewTag, username, password)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 			return
 		}
+		fmt.Println("with new tag image", image)
 		newSpec.TaskTemplate.ContainerSpec.Image = image.String()
 		w.Write([]byte("\n" + image.String()))
 		opts := types.ServiceUpdateOptions{}
@@ -112,6 +121,8 @@ func NewImage(full string) *Image {
 	posFirstSlash := strings.Index(full, "/")
 	posFirstColon := strings.Index(full, ":")
 	posFirstAt := strings.Index(full, "@")
+	fmt.Println("NewImage", full)
+	fmt.Println("NewImage:", posFirstSlash, posFirstAt, posFirstColon)
 	i := Image{
 		Registry: full[:posFirstSlash],
 		Name:     full[posFirstSlash+1 : posFirstColon],
