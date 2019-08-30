@@ -55,6 +55,7 @@ func main() {
 
 		cli, err := client.NewEnvClient()
 		if err != nil {
+			fmt.Println("client err", cli, err)
 			panic(err)
 		}
 
