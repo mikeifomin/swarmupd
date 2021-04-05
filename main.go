@@ -121,6 +121,9 @@ func NewImage(full string) *Image {
 	posFirstSlash := strings.Index(full, "/")
 	posFirstColon := strings.Index(full, ":")
 	posFirstAt := strings.Index(full, "@")
+	if posFirstAt == -1 {
+		posFirstAt = len(full) - 1
+	}
 	fmt.Println("NewImage", full)
 	fmt.Println("NewImage:", posFirstSlash, posFirstAt, posFirstColon)
 	i := Image{
