@@ -1,15 +1,17 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 )
 
 var ErrTagNotFound = errors.New("tag not found")
@@ -91,7 +93,16 @@ func main() {
 		fmt.Println("with new tag image", image)
 		newSpec.TaskTemplate.ContainerSpec.Image = image.String()
 		w.Write([]byte("\n" + image.String()))
-		opts := types.ServiceUpdateOptions{}
+
+		encodedAuth, err := CreateAuthString(username, password)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		opts := types.ServiceUpdateOptions{
+			EncodedRegistryAuth: encodedAuth,
+		}
 		updResp, err := cli.ServiceUpdate(ctx, serviceID, version, newSpec, opts)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -158,4 +169,17 @@ func (i *Image) UpdateTag(newTag, login, password string) error {
 	i.Tag = newTag
 	i.Digest = resp.Header.Get("Docker-Content-Digest")
 	return nil
+}
+
+func CreateAuthString(user, pass string) (string, error) {
+	authConfig := types.AuthConfig{
+		Username: user,
+		Password: pass,
+	}
+	encodedJSON, err := json.Marshal(authConfig)
+	if err != nil {
+		return "", nil
+	}
+	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+	return authStr, nil
 }
