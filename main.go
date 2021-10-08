@@ -146,6 +146,7 @@ func (i *Image) UpdateTag(newTag, login, password string) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("\n fetching new tag by url %s", url)
 		return ErrTagNotFound
 	}
 
