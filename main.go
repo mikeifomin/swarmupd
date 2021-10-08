@@ -4,20 +4,23 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 )
 
 var ErrTagNotFound = errors.New("tag not found")
+var ErrWrongToken = errors.New("wrong token")
 
 type Params struct {
 	ServiceName string `json:"serviceName"`
 	NewTag      string `json:"newTag"`
 	Token       string `json:"token"`
+	Auth        string `json:"auth"`
 }
 
 func main() {
@@ -47,34 +50,29 @@ func main() {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		fmt.Println("read")
 
 		if params.Token != token {
-			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte("Wrong token"))
+			http.Error(w, ErrWrongToken.Error(), http.StatusBadRequest)
 			return
 		}
-		fmt.Println("tokne")
 
 		cli, err := client.NewEnvClient()
 		if err != nil {
-			fmt.Println("client err", cli, err)
-			panic(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
-		fmt.Println("client")
 		ctx := r.Context()
 		serviceID := params.ServiceName
 		serv, _, err := cli.ServiceInspectWithRaw(ctx, serviceID)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		fmt.Println("curr Service")
+
 		imageFullName := serv.Spec.TaskTemplate.ContainerSpec.Image
 		version := serv.Meta.Version
-		w.Write([]byte(imageFullName))
+		//w.Write([]byte(imageFullName))
 
 		ctx = r.Context()
 		newSpec := serv.Spec
@@ -84,8 +82,7 @@ func main() {
 		fmt.Println("current image", image)
 		err = image.UpdateTag(params.NewTag, username, password)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		fmt.Println("with new tag image", image)
@@ -94,12 +91,11 @@ func main() {
 		opts := types.ServiceUpdateOptions{}
 		updResp, err := cli.ServiceUpdate(ctx, serviceID, version, newSpec, opts)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		w.Write([]byte(fmt.Sprintf("%v", updResp.Warnings)))
 		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(fmt.Sprintf("%v", updResp.Warnings)))
 		return
 	})
 	fmt.Println("will listen ", port)
