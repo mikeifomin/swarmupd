@@ -1,4 +1,4 @@
-FROM golang:1.12 as compiler
+FROM golang:1.17 as compiler
 COPY . /app
 WORKDIR /app
 RUN go build -mod=vendor -o /bin/server main.go
