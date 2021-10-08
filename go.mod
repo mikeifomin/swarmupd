@@ -1,6 +1,6 @@
 module github.com/mikeifomin/swarmupd
 
-go 1.12
+go 1.17
 
 require (
 	github.com/Microsoft/go-winio v0.4.12 // indirect
@@ -13,3 +13,5 @@ require (
 	github.com/stretchr/testify v1.3.0 // indirect
 	golang.org/x/net v0.0.0-20190607181551-461777fb6f67 // indirect
 )
+
+require golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a // indirect

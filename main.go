@@ -72,7 +72,6 @@ func main() {
 
 		imageFullName := serv.Spec.TaskTemplate.ContainerSpec.Image
 		version := serv.Meta.Version
-		//w.Write([]byte(imageFullName))
 
 		ctx = r.Context()
 		newSpec := serv.Spec
@@ -87,7 +86,6 @@ func main() {
 		}
 		fmt.Println("with new tag image", image)
 		newSpec.TaskTemplate.ContainerSpec.Image = image.String()
-		w.Write([]byte("\n" + image.String()))
 		opts := types.ServiceUpdateOptions{}
 		updResp, err := cli.ServiceUpdate(ctx, serviceID, version, newSpec, opts)
 		if err != nil {
