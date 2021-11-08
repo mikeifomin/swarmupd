@@ -33,7 +33,7 @@ func main() {
 	srv := server.Server{
 		Addr:             ":" + env.PORT,
 		Tokens:           env.TOKENS,
-		RegistryUser:     env.REGISTRY_USERNAME,
+		RegistryUser:     env.REGISTRY_USER,
 		RegistryPassword: env.REGISTRY_PASSWORD,
 
 		AllowedServiceIdPrefixies: env.SERVICE_PREFIXIES_ONLY,
