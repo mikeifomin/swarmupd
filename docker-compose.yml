@@ -1,0 +1,4 @@
+version: '3.8'
+services:
+  one:
+    image: r.midas.dev/midas/marketing_jobs:latest
