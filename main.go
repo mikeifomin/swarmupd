@@ -11,19 +11,30 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+
+	"github.com/kelseyhightower/envconfig"
 )
 
 var ErrTagNotFound = errors.New("tag not found")
 var ErrWrongToken = errors.New("wrong token")
 
 type Params struct {
-	ServiceName string `json:"serviceName"`
-	NewTag      string `json:"newTag"`
-	Token       string `json:"token"`
-	Auth        string `json:"auth"`
+	ServiceName string `json:"ServiceName"`
+	NewImage    string `json:"NewImage"`
+	Token       string `json:"Token"`
+}
+
+type Env struct {
+	TOKEN             string
+	PORT              string
+	REGISTRY_USERNAME string
+	REGISTRY_PASSWORD string
 }
 
 func main() {
+	var env Env
+	envconfig.MustProcess("", &env)
+
 	_, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
