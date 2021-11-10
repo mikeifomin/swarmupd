@@ -101,7 +101,7 @@ func (s *Server) UpdateDockerService(ctx context.Context, serviceId, imageNext s
 		return fmt.Errorf("only tag update allowed. imageWas: %s, imageNext: %s", imageWas, imageNext)
 	}
 
-	err = docker.UpdateImageService(serviceId, imageNext)
+	err = docker.UpdateImageService(serviceId, imageNext, s.RegistryUser, s.RegistryPassword)
 	if err != nil {
 		return err
 	}

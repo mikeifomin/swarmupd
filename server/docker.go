@@ -50,7 +50,7 @@ func (d *Docker) GetImageFromService(serviceID string) (string, error) {
 	return service.Spec.TaskTemplate.ContainerSpec.Image, nil
 }
 
-func (d *Docker) UpdateImageService(serviceID string, image string) error {
+func (d *Docker) UpdateImageService(serviceID string, image, user, password string) error {
 	service, _, err := d.client.ServiceInspectWithRaw(ctxDefault(), serviceID, types.ServiceInspectOptions{})
 	if err != nil {
 		return err
@@ -58,7 +58,10 @@ func (d *Docker) UpdateImageService(serviceID string, image string) error {
 	newSpec := service.Spec
 	newSpec.TaskTemplate.ContainerSpec.Image = image
 	version := service.Meta.Version
-	_, err = d.client.ServiceUpdate(ctxDefault(), serviceID, version, newSpec, types.ServiceUpdateOptions{})
+	_, err = d.client.ServiceUpdate(ctxDefault(), serviceID, version, newSpec, types.ServiceUpdateOptions{
+		RegistryAuthFrom: authStr(user, password),
+		//EncodedRegistryAuth: authStr(user, password),
+	})
 	if err != nil {
 		return err
 	}
