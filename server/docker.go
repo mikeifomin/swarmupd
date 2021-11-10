@@ -59,8 +59,8 @@ func (d *Docker) UpdateImageService(serviceID string, image, user, password stri
 	newSpec.TaskTemplate.ContainerSpec.Image = image
 	version := service.Meta.Version
 	_, err = d.client.ServiceUpdate(ctxDefault(), serviceID, version, newSpec, types.ServiceUpdateOptions{
-		RegistryAuthFrom: authStr(user, password),
-		//EncodedRegistryAuth: authStr(user, password),
+		//RegistryAuthFrom: authStr(user, password),
+		EncodedRegistryAuth: authStr(user, password),
 	})
 	if err != nil {
 		return err
