@@ -13,9 +13,9 @@ ENV REGISTRY_USER=none
 ENV REGISTRY_PASSWORD=none
 ENV SERVICE_PREFIXIES_ONLY=none
 
-
 ENV DOCKER_HOST unix:///var/run/docker.sock 
 RUN apt-get update && apt-get install -y ca-certificates
 COPY --from=compiler /bin/server /bin/server
+COPY --from=compiler /bin/swarmupd /bin/swarmupd
 EXPOSE 80 443
 CMD ["bin/server"]
