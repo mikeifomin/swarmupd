@@ -113,6 +113,9 @@ func (s *Server) isAllowedServiceId(serviceId string) bool {
 		if strings.HasPrefix(serviceId, prefix) {
 			return true
 		}
+		if prefix == "*" {
+			return true
+		}
 	}
 	return false
 }
